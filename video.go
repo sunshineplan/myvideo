@@ -135,8 +135,12 @@ func (v *video) getPlayList() error {
 			key := s[0]
 			var eps []play
 			for _, ep := range strings.Split(s[1], "|") {
+				if ep == "暂无资源" {
+					eps = append(eps, play{EP: "暂无资源"})
+					continue
+				}
 				s := strings.Split(ep, "$")
-				if len(s) != 2 {
+				if len(s) < 2 {
 					return fmt.Errorf("strings split error: %s", ep)
 				}
 				eps = append(eps, play{EP: s[0], M3U8: s[1]})

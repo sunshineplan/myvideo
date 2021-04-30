@@ -25,6 +25,7 @@ func run() {
 	}
 
 	router.StaticFS("/build", http.Dir(filepath.Join(filepath.Dir(self), "public/build")))
+	router.StaticFS("/res", http.Dir(filepath.Join(filepath.Dir(self), "public/res")))
 	router.StaticFile("favicon.ico", filepath.Join(filepath.Dir(self), "public/favicon.ico"))
 	router.LoadHTMLFiles(filepath.Join(filepath.Dir(self), "public/index.html"))
 
