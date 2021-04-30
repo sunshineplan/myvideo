@@ -122,9 +122,7 @@ func (v *video) getPlayList() error {
 		return err
 	}
 
-	mu.Lock()
-	v.PlayList = make(map[string][]play)
-	mu.Unlock()
+	playList := make(map[string][]play)
 
 	for _, i := range strings.Split(result, "|@@@") {
 		if i != "" {
@@ -146,11 +144,13 @@ func (v *video) getPlayList() error {
 				eps = append(eps, play{EP: s[0], M3U8: s[1]})
 			}
 
-			mu.Lock()
-			v.PlayList[key] = eps
-			mu.Unlock()
+			playList[key] = eps
 		}
 	}
+
+	mu.Lock()
+	v.PlayList = playList
+	mu.Unlock()
 
 	return nil
 }
