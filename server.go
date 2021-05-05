@@ -27,10 +27,16 @@ func run() {
 	router.StaticFS("/build", http.Dir(filepath.Join(filepath.Dir(self), "public/build")))
 	router.StaticFS("/res", http.Dir(filepath.Join(filepath.Dir(self), "public/res")))
 	router.StaticFile("favicon.ico", filepath.Join(filepath.Dir(self), "public/favicon.ico"))
-	router.LoadHTMLFiles(filepath.Join(filepath.Dir(self), "public/index.html"))
+	router.LoadHTMLFiles(
+		filepath.Join(filepath.Dir(self), "public/index.html"),
+		filepath.Join(filepath.Dir(self), "public/player.html"),
+	)
 
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(200, "index.html", nil)
+	})
+	router.GET("/play", func(c *gin.Context) {
+		c.HTML(200, "player.html", nil)
 	})
 
 	router.GET("/list", func(c *gin.Context) {
@@ -44,7 +50,7 @@ func run() {
 			var ok bool
 			action, ok = category[cat]
 			if !ok {
-				action = category["1"]
+				action = category["dongman"]
 			}
 		}
 

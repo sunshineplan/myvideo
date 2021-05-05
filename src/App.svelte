@@ -1,35 +1,14 @@
 <script lang="ts">
   import { onMount } from "svelte";
-
-  interface Category {
-    1: string;
-    2: string;
-    3: string;
-    4: string;
-  }
+  import Playlist from "./components/Playlist.svelte";
 
   const category: Category = {
-    1: "dongman",
-    2: "dianying",
-    3: "dianshiju",
-    4: "zongyi",
+    dongman: "动漫",
+    dianying: "电影",
+    dianshiju: "电视剧",
+    zongyi: "综艺",
   };
-
-  type List<T> = {
-    [key in keyof T]: video[];
-  };
-
-  interface video {
-    name: string;
-    url: string;
-    image: string;
-    playlist: { [key: string]: play[] };
-  }
-
-  interface play {
-    ep: string;
-    m3u8: string;
-  }
+  const keys = Object.keys(category) as Array<keyof Category>;
 
   let query = "";
   let list: Partial<List<Category>> = {};
@@ -38,9 +17,9 @@
 
   const channel = async (category?: keyof Category) => {
     let url: string;
-    if (category && category != 1) url = "/list?c=" + category;
+    if (category && category != "dongman") url = "/list?c=" + category;
     else url = "/list";
-    if (!category) category = 1;
+    if (!category) category = "dongman";
     if (list[category]) {
       current = list[category] as video[];
       return;
@@ -82,7 +61,14 @@
 </script>
 
 <header class="navbar navbar-expand flex-column flex-md-row">
-  <a class="navbar-brand text-primary m-0 mr-md-3" href="/">My Video</a>
+  <a class="navbar-brand text-primary" href="/">My Video</a>
+  <ul class="navbar-nav">
+    {#each keys as c}
+      <li class="nav-link" on:click={async () => await channel(c)}>
+        {category[c]}
+      </li>
+    {/each}
+  </ul>
   <div class="input-group">
     <input
       class="form-control"
@@ -121,13 +107,7 @@
       </div>
       <div class="playlist">
         {#if video.playlist}
-          {#each Object.entries(video.playlist) as [key, playlist] (key)}
-            {#each playlist as play (play.ep)}
-              <li>
-                <span class="play">{play.ep}</span>
-              </li>
-            {/each}
-          {/each}
+          <Playlist bind:name={video.name} bind:playlist={video.playlist} />
         {/if}
       </div>
     </div>
@@ -219,22 +199,9 @@
     align-self: center;
   }
 
-  li {
-    display: inline-block;
-    margin: 10px 6px;
-    cursor: pointer;
-  }
-
-  .play {
-    border: 1px solid #6c757d;
-    border-radius: 3px;
-    padding: 5px;
-    color: #343a40;
-  }
-
   @media (max-width: 767px) {
     :root {
-      --header: 120px;
+      --header: 160px;
     }
 
     .navbar {

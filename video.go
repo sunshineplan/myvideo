@@ -15,10 +15,10 @@ import (
 )
 
 var category = map[string]string{
-	"1": "/dongman/",
-	"2": "/dianying/",
-	"3": "/dianshiju/",
-	"4": "/zongyi/",
+	"dongman":   "/dongman/",
+	"dianying":  "/dianying/",
+	"dianshiju": "/dianshiju/",
+	"zongyi":    "/zongyi/",
 }
 
 var vm = otto.New()
@@ -68,7 +68,10 @@ func getList(arg string) ([]video, error) {
 }
 
 func (v *video) getPlayList() error {
+	mu.Lock()
 	resp := gohttp.Get(v.URL, nil)
+	mu.Unlock()
+
 	if resp.Error != nil {
 		return resp.Error
 	}
