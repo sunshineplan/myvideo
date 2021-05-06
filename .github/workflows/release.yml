@@ -60,6 +60,7 @@ jobs:
           npm run build
           go mod download
           go build -ldflags "-s -w"
+          GOOS=windows go build -ldflags "-s -w"
           echo "::set-output name=date::$(TZ=CST date +'%Y-%m-%d')"
 
       - name: Create Release
@@ -77,6 +78,7 @@ jobs:
       - name: Zip release files
         run: |
           tar cvzf release.tar.gz public scripts myvideo config.ini.default
+          zip -9vr release-windows.zip public scripts myvideo.exe config.ini.default
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
@@ -87,3 +89,13 @@ jobs:
           asset_path: ./release.tar.gz
           asset_name: release.tar.gz
           asset_content_type: application/gzip
+
+      - name: Upload Windows Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release-windows.zip
+          asset_name: release-windows.zip
+          asset_content_type: application/zip
