@@ -43,8 +43,13 @@ func getList(arg string) ([]video, error) {
 		return nil, resp.Error
 	}
 
+	lists := soup.HTMLParse(resp.String()).FindStrict("div", "class", "lists-content")
+	if lists.Error != nil {
+		return nil, fmt.Errorf("fail to get list: %v", lists.Error)
+	}
+
 	var videos []video
-	for _, i := range soup.HTMLParse(resp.String()).FindStrict("div", "class", "lists-content").FindAll("li") {
+	for _, i := range lists.FindAll("li") {
 		videos = append(videos, video{
 			Name:  i.Find("h2").FullText(),
 			URL:   api + i.Find("a").Attrs()["href"],
