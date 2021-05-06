@@ -4,12 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"math/rand"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/sunshineplan/gohttp"
 	"github.com/sunshineplan/service"
@@ -20,7 +17,6 @@ import (
 var api, self string
 var logPath *string
 var server httpsvr.Server
-var u *url.URL
 
 var svc = service.Service{
 	Name: "myvideo",
@@ -45,8 +41,6 @@ func init() {
 		agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36"
 	}
 	gohttp.SetAgent(agent)
-
-	rand.Seed(time.Now().UnixNano())
 }
 
 func usage(errmsg string) {
@@ -72,13 +66,6 @@ func main() {
 	iniflags.SetAllowUnknownFlags(true)
 	iniflags.Parse()
 
-	var err error
-	u, err = url.ParseRequestURI(api)
-	if err != nil {
-		log.Fatal(err)
-	}
-	u.Path = ""
-
 	svc.Options.ExcludeFiles = strings.Split(*exclude, ",")
 
 	if service.IsWindowsService() {
@@ -86,6 +73,7 @@ func main() {
 		return
 	}
 
+	var err error
 	switch flag.NArg() {
 	case 0:
 		run()
