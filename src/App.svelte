@@ -12,7 +12,8 @@
 
   let query = "";
   let list: Partial<List<Category>> = {};
-  let current: video[] = [];
+  let videos: video[] = [];
+  let current: keyof Category | undefined = "dongman";
   let loading = 0;
 
   const channel = async (category?: keyof Category) => {
@@ -20,23 +21,25 @@
     if (category && category != "dongman") url = "/list?c=" + category;
     else url = "/list";
     if (!category) category = "dongman";
+    current = category;
     if (list[category]) {
-      current = list[category] as video[];
+      videos = list[category] as video[];
       return;
     }
     const li = await getList(url);
     if (li) {
       list[category] = li;
-      current = li;
+      videos = li;
     }
   };
 
   const search = async (query?: string) => {
+    current = undefined;
     let url: string;
     if (query) url = "/list?q=" + query;
     else url = "/list";
     const list = await getList(url);
-    if (list) current = list;
+    if (list) videos = list;
   };
 
   const getList = async (url: string) => {
@@ -61,10 +64,14 @@
 </script>
 
 <header class="navbar navbar-expand flex-column flex-md-row">
-  <a class="navbar-brand text-primary" href="/">My Video</a>
+  <a class="navbar-brand text-primary m-0" href="/">My Video</a>
   <ul class="navbar-nav">
     {#each keys as c}
-      <li class="nav-link" on:click={async () => await channel(c)}>
+      <li
+        class="nav-link"
+        class:active={current == c}
+        on:click={async () => await channel(c)}
+      >
         {category[c]}
       </li>
     {/each}
@@ -99,7 +106,7 @@
   </div>
 </header>
 <div class="content" style="opacity: {loading ? 0.5 : 1}">
-  {#each current as video (video.url)}
+  {#each videos as video (video.url)}
     <div style="display:flex">
       <div class="video" on:click={() => window.open(video.url)}>
         <img src={video.image} alt={video.name} width="150px" height="208px" />
@@ -215,6 +222,18 @@
     .input-group {
       width: 66%;
     }
+  }
+
+  .nav-link {
+    color: rgba(0, 0, 0, 0.55);
+  }
+
+  .nav-link:hover {
+    color: rgba(0, 0, 0, 0.7);
+  }
+
+  .nav-link.active {
+    color: rgba(0, 0, 0, 0.9);
   }
 
   :global(body) {

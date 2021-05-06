@@ -10,6 +10,6 @@ require (
 	github.com/sunshineplan/service v0.0.0-20210225015410-ded17aad0e4b
 	github.com/sunshineplan/utils v0.0.0-20210501045403-9b6560895cd8
 	github.com/vharitonsky/iniflags v0.0.0-20180513140207-a33cd0b5f3de
-	golang.org/x/net v0.0.0-20210505024714-0287a6fb4125 // indirect
+	golang.org/x/net v0.0.0-20210505214959-0714010a04ed // indirect
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 )

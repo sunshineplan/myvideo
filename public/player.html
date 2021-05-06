@@ -8,7 +8,7 @@
     <title>My Video</title>
 
     <link rel='icon' type='image/ico' href='/favicon.ico'>
-    <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css'>
+    <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css'>
     <script src='https://cdn.jsdelivr.net/npm/hls.js@latest'></script>
     <style>
         header {
@@ -50,21 +50,30 @@
 
 <body>
     <header class='navbar navbar-expand flex-column flex-md-row'>
-        <a class='navbar-brand text-primary m-0 mr-md-3' href='/'>My Video</a>
+        <a class='navbar-brand text-primary m-0' href='/'>My Video</a>
+        <span id='title'></span>
     </header>
     <div class='video'>
-        <video id='video' controls allow='autoplay'></video>
+        <video id='video' controls></video>
     </div>
     <script>
         const url = new URL(window.location.href)
         const video = document.getElementById('video')
         const videoSrc = url.searchParams.get('url')
         const title = url.searchParams.get('title')
-        if (title) document.title = title
-        const hls = new Hls()
-        hls.loadSource(videoSrc)
-        hls.attachMedia(video)
-        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play())
+        if (title) {
+            document.title = title
+            document.getElementById('title').innerText = title
+        }
+        if (Hls.isSupported() && videoSrc.indexOf(".mp4") == -1) {
+            const hls = new Hls()
+            hls.loadSource(videoSrc)
+            hls.attachMedia(video)
+            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play())
+        } else {
+            video.src = videoSrc
+            video.addEventListener('loadedmetadata', () => video.play())
+        }
     </script>
 </body>
 
