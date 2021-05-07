@@ -44,19 +44,7 @@ func (e encrypted) decrypt() (string, error) {
 	mode.CryptBlocks(ct, ct)
 
 	for i := range ct {
-		if ct[i] == '\a' ||
-			ct[i] == '\b' ||
-			ct[i] == '\f' ||
-			ct[i] == '\v' ||
-			ct[i] == '\x01' ||
-			ct[i] == '\x02' ||
-			ct[i] == '\x03' ||
-			ct[i] == '\x04' ||
-			ct[i] == '\x05' ||
-			ct[i] == '\x06' ||
-			ct[i] == '\x0e' ||
-			ct[i] == '\x0f' ||
-			ct[i] == '\x10' {
+		if ct[i] < ' ' {
 			ct[i] = byte(' ')
 		}
 	}
