@@ -20,3 +20,12 @@ interface play {
   ep: string;
   m3u8: string;
 }
+
+interface filter {
+  search?: string;
+  genre?: string;
+  area?: string;
+  year?: string;
+  page?: number;
+  sort?: string;
+}

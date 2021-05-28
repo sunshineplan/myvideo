@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -39,29 +38,37 @@ func run() {
 		c.HTML(200, "player.html", nil)
 	})
 
-	router.GET("/list", func(c *gin.Context) {
-		cat := c.Query("c")
-		q := c.Query("q")
-
-		var action string
-		if q != "" {
-			action = fmt.Sprintf("/so/-%s--onclick.html", q)
-		} else {
-			var ok bool
-			action, ok = category[cat]
-			if !ok {
-				action = category["dongman"]
-			}
+	router.POST("/list", func(c *gin.Context) {
+		var data filter
+		if err := c.BindJSON(&data); err != nil {
+			log.Print(err)
+			c.String(400, "")
+			return
+		}
+		if !data.verify() {
+			log.Println("unknow format:", data.string())
+			c.String(400, "")
+			return
 		}
 
-		list, err := loadList(action)
+		var path string
+		if data.Search == "" {
+			var ok bool
+			path, ok = category[c.Query("c")]
+			if !ok {
+				path = category["dongman"]
+			}
+		}
+		path += data.string()
+
+		list, total, err := loadList(path)
 		if err != nil {
 			log.Print(err)
 			c.String(500, "")
 			return
 		}
 
-		c.JSON(200, list)
+		c.JSON(200, gin.H{"total": total, "list": list})
 	})
 
 	router.NoRoute(func(c *gin.Context) {

@@ -11,57 +11,71 @@
   const keys = Object.keys(category) as Array<keyof Category>;
 
   let query = "";
-  let list: Partial<List<Category>> = {};
-  let videos: video[] = [];
+  let list: video[] = [];
   let current: keyof Category | undefined = "dongman";
+  let filter: filter = {};
+  let total: number;
   let loading = 0;
 
   const channel = async (category?: keyof Category) => {
-    let url: string;
-    if (category && category != "dongman") url = "/list?c=" + category;
-    else url = "/list";
-    if (!category) category = "dongman";
+    if (loading) return;
+    filter = {};
     current = category;
-    if (list[category]) {
-      videos = list[category] as video[];
-      return;
-    }
-    const li = await getList(url);
-    if (li) {
-      list[category] = li;
-      videos = li;
-    }
+    await getList();
   };
 
-  const search = async (query?: string) => {
+  const search = async () => {
+    if (loading) return;
     current = undefined;
-    let url: string;
-    if (query) url = "/list?q=" + query;
-    else url = "/list";
-    const list = await getList(url);
-    if (list) videos = list;
+    filter = {};
+    filter.search = query;
+    await getList();
   };
 
-  const getList = async (url: string) => {
+  const getList = async (more?: boolean) => {
+    if (more) {
+      if (!filter.page) filter.page = 0;
+      if (filter.page < total - 1) filter.page++;
+      else return;
+    }
+    let url: string;
+    if (!current && !filter.search) current = "dongman";
+    if (current && current != "dongman") url = "/list?c=" + current;
+    else url = "/list";
     loading++;
-    const resp = await fetch(url);
+    const resp = await fetch(url, {
+      method: "post",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(filter),
+    });
     loading--;
     if (resp.ok) {
       const json = await resp.json();
-      if (Array.isArray(json)) {
-        return json as video[];
-      } else if (!json) {
-        alert("No video found");
-        return;
-      }
+      if (json.list) {
+        if (!more) {
+          const div = document.querySelector(".content");
+          if (div) div.scrollTop = 0;
+          list = json.list;
+          total = json.total;
+        } else list = list.concat(json.list);
+      } else alert("No video found");
+      return;
     }
     alert("Failed to get list");
+  };
+
+  const handleScroll = async () => {
+    const div = document.querySelector(".content") as Element;
+    if (div.scrollTop + div.clientHeight >= div.scrollHeight)
+      await getList(true);
   };
 
   onMount(async () => {
     await channel();
   });
 </script>
+
+<svelte:window on:scroll|capture={handleScroll} />
 
 <header class="navbar navbar-expand flex-column flex-md-row">
   <a class="navbar-brand text-primary m-0" href="/">My Video</a>
@@ -84,12 +98,12 @@
       placeholder="Search Video"
       on:keydown={async (e) => {
         if (e.key === "Escape") query = "";
-        else if (e.key === "Enter") await search(query);
+        else if (e.key === "Enter") await search();
       }}
     />
     <button
       class="btn btn-outline-primary"
-      on:click={async () => await search(query)}
+      on:click={async () => await search()}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -106,7 +120,7 @@
   </div>
 </header>
 <div class="content" style="opacity: {loading ? 0.5 : 1}">
-  {#each videos as video (video.url)}
+  {#each list as video (video.url)}
     <div style="display:flex">
       <div class="video" on:click={() => window.open(video.url)}>
         <img src={video.image} alt={video.name} width="150px" height="208px" />

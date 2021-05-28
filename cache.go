@@ -7,24 +7,46 @@ import (
 	"github.com/sunshineplan/utils/cache"
 )
 
-var listCache = cache.New(false)
+type result struct {
+	list  []video
+	total int
+}
 
-func loadList(action string) ([]video, error) {
-	value, ok := listCache.Get(action)
+var c = cache.New(true)
+
+func loadList(path string) (list []video, total int, err error) {
+	value, ok := c.Get(path)
 	if ok {
-		return value.([]video), nil
+		list = value.(result).list
+		total = value.(result).total
+		return
 	}
 
-	var list []video
-	var err error
-	if err := utils.Retry(func() error {
-		list, err = getList(action)
+	if err = utils.Retry(func() error {
+		list, total, err = getList(path)
 		return err
 	}, 3, 2); err != nil {
-		return nil, err
+		return
 	}
 
-	listCache.Set(action, list, 10*time.Minute, nil)
+	c.Set(path, result{list: list, total: total}, 10*time.Minute, nil)
 
-	return list, nil
+	return
+}
+
+func loadPlayList(url string) (playlist map[string][]play, err error) {
+	value, ok := c.Get(url)
+	if ok {
+		playlist = value.(map[string][]play)
+		return
+	}
+
+	playlist, err = getPlayList(url)
+	if err != nil {
+		return
+	}
+
+	c.Set(url, playlist, time.Hour, nil)
+
+	return
 }
