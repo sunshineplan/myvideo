@@ -1,16 +1,16 @@
 package main
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
 	"log"
 	"regexp"
 	"strconv"
-	"strings"
 	"sync"
+	"time"
 
 	"github.com/anaskhan96/soup"
-	"github.com/robertkrimen/otto"
+	"github.com/chromedp/chromedp"
 	"github.com/sunshineplan/gohttp"
 	"github.com/sunshineplan/utils"
 )
@@ -109,115 +109,44 @@ func getList(path string) (list []video, total int, err error) {
 	return
 }
 
-func getVar(key string, vm *otto.Otto) (string, error) {
-	value, err := vm.Get(key)
-	if err != nil {
-		return "", err
-	}
-
-	if value.IsUndefined() {
-		return "", fmt.Errorf("undefined value of %s", key)
-	}
-
-	v, err := value.Export()
-	if err != nil {
-		return "", err
-	}
-
-	return fmt.Sprintf("%v", v), nil
-}
-
 func getPlayList(url string) (map[string][]play, error) {
-	resp := gohttp.Get(url, nil)
-	if resp.Error != nil {
-		return nil, resp.Error
+	ctx, cancel := chromedp.NewContext(context.Background())
+	defer cancel()
+
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	var dl, db string
+	if err := chromedp.Run(ctx,
+		chromedp.Navigate(url),
+		chromedp.WaitVisible(`div.bd`),
+		chromedp.InnerHTML("div#slider>header>dl", &dl),
+		chromedp.InnerHTML(`div.bd`, &db),
+		chromedp.Stop(),
+	); err != nil {
+		return nil, err
 	}
 
-	var script string
-	for _, i := range soup.HTMLParse(resp.String()).FindAll("script") {
-		if strings.Contains(i.Text(), "links") {
-			script = i.Text()
-			break
+	var keys []string
+	for _, i := range soup.HTMLParse(dl).FindAll("dt") {
+		keys = append(keys, i.Text())
+	}
+
+	var pp [][]play
+	for _, i := range soup.HTMLParse(db).FindAll("ul") {
+		var p []play
+		for _, a := range i.FindAll("a") {
+			p = append(p, play{a.Text(), a.Attrs()["onclick"]})
 		}
+		pp = append(pp, p)
 	}
 
-	vm := otto.New()
-	var s []string
-	for _, i := range strings.Split(script, ";") {
-		if _, err := vm.Run(i); err != nil {
-			//log.Print(i)
-			continue
-		}
-		s = append(s, i)
-	}
-	if _, err := vm.Run(strings.Join(s, ";")); err != nil {
-		return nil, err
+	list := make(map[string][]play)
+	for index, i := range keys {
+		list[i] = pp[1 : len(pp)-1][index]
 	}
 
-	links, err := getVar("links", vm)
-	if err != nil {
-		return nil, err
-	}
-
-	var e encrypted
-	if err := json.Unmarshal([]byte(links), &e); err != nil {
-		return nil, err
-	}
-
-	classid, err := getVar("classid", vm)
-	if err != nil {
-		return nil, err
-	}
-	infoid, err := getVar("infoid", vm)
-	if err != nil {
-		return nil, err
-	}
-
-	keyURL := fmt.Sprintf(api+"/e/extend/lgyPl2.0/?id=%v&classid=%v", infoid, classid)
-	resp = gohttp.Get(keyURL, nil)
-	if resp.Error != nil {
-		return nil, resp.Error
-	}
-
-	re := regexp.MustCompile(`e=(\d{5,6})`)
-	key := re.FindStringSubmatch(resp.String())
-	if key == nil {
-		return nil, fmt.Errorf("fail to get key from %s", keyURL)
-	}
-
-	e.Key = "dandan" + key[1]
-	result, err := e.decrypt()
-	if err != nil {
-		return nil, err
-	}
-
-	playList := make(map[string][]play)
-
-	for _, i := range strings.Split(result, "|@@@") {
-		if i != "" {
-			s := strings.Split(i, "!!!")
-			if len(s) != 2 {
-				return nil, fmt.Errorf("strings split error: %s", i)
-			}
-			key := s[0]
-			var eps []play
-			for _, ep := range strings.Split(s[1], "|") {
-				if ep == "暂无资源" {
-					eps = append(eps, play{EP: "暂无资源"})
-					continue
-				}
-				s := strings.Split(ep, "$")
-				if len(s) < 2 {
-					return nil, fmt.Errorf("strings split error: %s", ep)
-				}
-				eps = append(eps, play{EP: s[0], M3U8: s[1]})
-			}
-
-			playList[key] = eps
-		}
-	}
-
-	return playList, nil
+	return list, nil
 }
 
 func (v *video) getPlayList() error {

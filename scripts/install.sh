@@ -6,7 +6,7 @@ installSoftware() {
 
 installMyVideo() {
     mkdir -p /var/www/myvideo
-    curl -Lo- https://github.com/sunshineplan/myvideo/releases/download/v1.0/release.tar.gz | tar zxC /var/www/myvideo
+    curl -Lo- https://github.com/sunshineplan/myvideo/releases/latest/download/release.tar.gz | tar zxC /var/www/myvideo
     cd /var/www/myvideo
     chmod +x myvideo
 }

@@ -30,5 +30,4 @@ jobs:
         run: |
           npm i --no-package-lock
           npm run build
-          go mod download
           go build -v ./...
