@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sunshineplan/utils"
 )
 
 func test() error {
@@ -47,9 +48,6 @@ func run() {
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(200, "index.html", nil)
 	})
-	router.GET("/play", func(c *gin.Context) {
-		c.HTML(200, "player.html", nil)
-	})
 
 	router.POST("/list", func(c *gin.Context) {
 		var data filter
@@ -82,6 +80,33 @@ func run() {
 		}
 
 		c.JSON(200, gin.H{"total": total, "list": list})
+	})
+
+	router.GET("/play", func(c *gin.Context) {
+		c.HTML(200, "player.html", nil)
+	})
+
+	router.POST("/play", func(c *gin.Context) {
+		var play struct {
+			URL, Play string
+		}
+		if err := c.BindJSON(&play); err != nil {
+			c.String(400, "")
+			return
+		}
+
+		var url string
+		var err error
+		if err := utils.Retry(func() error {
+			url, err = loadPlay(play.URL, play.Play)
+			return err
+		}, 3, 3); err != nil {
+			log.Print(err)
+			c.String(500, "")
+			return
+		}
+
+		c.String(200, url)
 	})
 
 	router.NoRoute(func(c *gin.Context) {

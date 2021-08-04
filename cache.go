@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"time"
 
 	"github.com/sunshineplan/utils"
@@ -34,19 +35,36 @@ func loadList(path string) (list []video, total int, err error) {
 	return
 }
 
-func loadPlayList(url string) (playlist map[string][]play, err error) {
+func loadPlayList(url string, ctx context.Context) (playlist map[string][]play, err error) {
 	value, ok := c.Get(url)
 	if ok {
 		playlist = value.(map[string][]play)
 		return
 	}
 
-	playlist, err = getPlayList(url)
+	playlist, err = getPlayList(url, ctx)
 	if err != nil {
 		return
 	}
 
 	c.Set(url, playlist, time.Hour, nil)
+
+	return
+}
+
+func loadPlay(play, script string) (url string, err error) {
+	value, ok := c.Get(play + script)
+	if ok {
+		url = value.(string)
+		return
+	}
+
+	url, err = getPlay(play, script)
+	if err != nil {
+		return
+	}
+
+	c.Set(play+script, url, time.Hour, nil)
 
 	return
 }

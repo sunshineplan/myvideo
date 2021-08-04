@@ -10,9 +10,11 @@ import (
 	"time"
 
 	"github.com/anaskhan96/soup"
+	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 	"github.com/sunshineplan/gohttp"
 	"github.com/sunshineplan/utils"
+	"github.com/sunshineplan/utils/workers"
 )
 
 var category = map[string]string{
@@ -94,30 +96,30 @@ func getList(path string) (list []video, total int, err error) {
 		total, err = getPage(href)
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(len(list))
-	for i := range list {
-		go func(v *video) {
-			defer wg.Done()
-			if err := utils.Retry(v.getPlayList, 3, 1); err != nil {
-				log.Print(err)
-			}
-		}(&list[i])
-	}
-	wg.Wait()
+	ctx, cancel := chromedp.NewContext(context.Background())
+	defer cancel()
+
+	workers.Slice(list, func(i int, _ interface{}) {
+		if err := utils.Retry(func() error {
+			return (&list[i]).getPlayList(ctx)
+		}, 3, 3); err != nil {
+			log.Print(err)
+		}
+	})
 
 	return
 }
 
-func getPlayList(url string) (map[string][]play, error) {
-	ctx, cancel := chromedp.NewContext(context.Background())
+func getPlayList(url string, ctx context.Context) (map[string][]play, error) {
+	ctx, cancel := chromedp.NewContext(ctx)
 	defer cancel()
 
-	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	var dl, db string
-	if err := chromedp.Run(ctx,
+	if err := chromedp.Run(
+		ctx,
 		chromedp.Navigate(url),
 		chromedp.WaitVisible(`div.bd`),
 		chromedp.InnerHTML("div#slider>header>dl", &dl),
@@ -149,12 +151,12 @@ func getPlayList(url string) (map[string][]play, error) {
 	return list, nil
 }
 
-func (v *video) getPlayList() error {
+func (v *video) getPlayList(ctx context.Context) error {
 	mu.Lock()
 	url := v.URL
 	mu.Unlock()
 
-	playList, err := loadPlayList(url)
+	playList, err := loadPlayList(url, ctx)
 	if err != nil {
 		return err
 	}
@@ -164,4 +166,58 @@ func (v *video) getPlayList() error {
 	mu.Unlock()
 
 	return nil
+}
+
+func getPlay(play, script string) (url string, err error) {
+	ctx, cancel := chromedp.NewContext(context.Background())
+	defer cancel()
+
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
+	var id network.RequestID
+
+	done := make(chan bool)
+	if err = chromedp.Run(
+		ctx,
+		chromedp.Navigate(play),
+		chromedp.WaitVisible(`div.bd`),
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			chromedp.ListenTarget(ctx, func(v interface{}) {
+				switch ev := v.(type) {
+				case *network.EventRequestWillBeSent:
+					if url == "" {
+						id = ev.RequestID
+						url = ev.Request.URL
+					}
+				case *network.EventLoadingFinished:
+					if ev.RequestID == id {
+						close(done)
+					}
+				}
+			})
+			return nil
+		}),
+		chromedp.Evaluate(script, nil),
+	); err != nil {
+		return
+	}
+
+	<-done
+
+	err = chromedp.Run(
+		ctx,
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			if url == api+"/url.php" {
+				body, err := network.GetResponseBody(id).Do(ctx)
+				if err != nil {
+					log.Fatal(err)
+				}
+				url = string(body)
+			}
+			return nil
+		}),
+	)
+
+	return
 }

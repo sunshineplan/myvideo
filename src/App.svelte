@@ -128,7 +128,12 @@
       </div>
       <div class="playlist">
         {#if video.playlist}
-          <Playlist bind:name={video.name} bind:playlist={video.playlist} />
+          <Playlist
+            bind:loading
+            bind:name={video.name}
+            bind:url={video.url}
+            bind:playlist={video.playlist}
+          />
         {/if}
       </div>
     </div>

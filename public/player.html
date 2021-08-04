@@ -65,14 +65,13 @@
             document.title = title
             document.getElementById('title').innerText = title
         }
-        if (Hls.isSupported() && videoSrc.indexOf(".mp4") == -1) {
+        video.src = videoSrc
+        video.onloadedmetadata = video.play
+        video.onerror = () => {
             const hls = new Hls()
             hls.loadSource(videoSrc)
             hls.attachMedia(video)
             hls.on(Hls.Events.MANIFEST_PARSED, () => video.play())
-        } else {
-            video.src = videoSrc
-            video.addEventListener('loadedmetadata', () => video.play())
         }
     </script>
 </body>

@@ -1,7 +1,7 @@
 #! /bin/bash
 
 installSoftware() {
-    apt -qq -y install nginx
+    apt -qq -y install nginx chromium
 }
 
 installMyVideo() {

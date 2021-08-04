@@ -1,10 +1,28 @@
 <script lang="ts">
   import { onMount } from "svelte";
 
+  export let loading: number;
   export let name = "";
+  export let url: string;
   export let playlist: { [key: string]: play[] } = {};
 
   let current = "";
+
+  const open = async (title: string, play: play) => {
+    loading++;
+    const resp = await fetch("/play", {
+      method: "post",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url, play: play.m3u8 }),
+    });
+    loading--;
+    if (resp.ok) {
+      const url = await resp.text();
+      window.open(`/play?title=${title} - ${play.ep}&url=${url}`);
+      return;
+    }
+    alert("Failed to get play");
+  };
 
   onMount(() => {
     if (Object.keys(playlist).length) current = Object.keys(playlist)[0];
@@ -28,11 +46,7 @@
   {#if playlist[current]}
     {#each playlist[current] as play (play.ep)}
       <li>
-        <span
-          class="play"
-          on:click={() =>
-            window.open(`/play?url=${play.m3u8}&title=${name} - ${play.ep}`)}
-        >
+        <span class="play" on:click={() => open(name, play)}>
           {play.ep}
         </span>
       </li>
