@@ -147,7 +147,6 @@ func getPlayList(url string, ctx context.Context) (map[string][]play, error) {
 		chromedp.WaitVisible(`div.bd`),
 		chromedp.InnerHTML("div#slider>header>dl", &dl),
 		chromedp.InnerHTML(`div.bd`, &db),
-		chromedp.Stop(),
 	); err != nil {
 		return nil, err
 	}
@@ -200,27 +199,10 @@ func getPlay(play, script string) (url string, err error) {
 
 	var id network.RequestID
 
-	chromedp.ListenTarget(ctx, func(v interface{}) {
-		switch ev := v.(type) {
-		case *fetch.EventRequestPaused:
-			go func() {
-				c := chromedp.FromContext(ctx)
-				ctx := cdp.WithExecutor(ctx, c.Target)
-
-				if strings.Contains(ev.Request.URL, "media-loader") {
-					fetch.FailRequest(ev.RequestID, network.ErrorReasonBlockedByClient).Do(ctx)
-				} else {
-					fetch.ContinueRequest(ev.RequestID).Do(ctx)
-				}
-			}()
-		}
-	})
-
 	done := make(chan bool)
 	if err = chromedp.Run(
 		ctx,
 		runtime.Disable(),
-		fetch.Enable(),
 		chromedp.Navigate(play),
 		chromedp.WaitVisible(`div.bd`),
 		chromedp.ActionFunc(func(ctx context.Context) error {
