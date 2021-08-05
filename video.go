@@ -6,11 +6,15 @@ import (
 	"log"
 	"regexp"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/anaskhan96/soup"
+	"github.com/chromedp/cdproto/cdp"
+	"github.com/chromedp/cdproto/fetch"
 	"github.com/chromedp/cdproto/network"
+	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 	"github.com/sunshineplan/gohttp"
 	"github.com/sunshineplan/utils"
@@ -37,6 +41,7 @@ type play struct {
 }
 
 var mu sync.Mutex
+var timeout = 20 * time.Second
 
 func getPage(s string) (int, error) {
 	re1 := regexp.MustCompile(`index_(\d+)\.html`)
@@ -102,7 +107,7 @@ func getList(path string) (list []video, total int, err error) {
 	workers.Slice(list, func(i int, _ interface{}) {
 		if err := utils.Retry(func() error {
 			return (&list[i]).getPlayList(ctx)
-		}, 3, 3); err != nil {
+		}, 2, 3); err != nil {
 			log.Print(err)
 		}
 	})
@@ -114,12 +119,30 @@ func getPlayList(url string, ctx context.Context) (map[string][]play, error) {
 	ctx, cancel := chromedp.NewContext(ctx)
 	defer cancel()
 
-	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel = context.WithTimeout(ctx, timeout)
 	defer cancel()
+
+	chromedp.ListenTarget(ctx, func(v interface{}) {
+		switch ev := v.(type) {
+		case *fetch.EventRequestPaused:
+			go func() {
+				c := chromedp.FromContext(ctx)
+				ctx := cdp.WithExecutor(ctx, c.Target)
+
+				if strings.Contains(ev.Request.URL, "media-loader") {
+					fetch.FailRequest(ev.RequestID, network.ErrorReasonBlockedByClient).Do(ctx)
+				} else {
+					fetch.ContinueRequest(ev.RequestID).Do(ctx)
+				}
+			}()
+		}
+	})
 
 	var dl, db string
 	if err := chromedp.Run(
 		ctx,
+		runtime.Disable(),
+		fetch.Enable(),
 		chromedp.Navigate(url),
 		chromedp.WaitVisible(`div.bd`),
 		chromedp.InnerHTML("div#slider>header>dl", &dl),
@@ -172,14 +195,32 @@ func getPlay(play, script string) (url string, err error) {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel = context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	var id network.RequestID
 
+	chromedp.ListenTarget(ctx, func(v interface{}) {
+		switch ev := v.(type) {
+		case *fetch.EventRequestPaused:
+			go func() {
+				c := chromedp.FromContext(ctx)
+				ctx := cdp.WithExecutor(ctx, c.Target)
+
+				if strings.Contains(ev.Request.URL, "media-loader") {
+					fetch.FailRequest(ev.RequestID, network.ErrorReasonBlockedByClient).Do(ctx)
+				} else {
+					fetch.ContinueRequest(ev.RequestID).Do(ctx)
+				}
+			}()
+		}
+	})
+
 	done := make(chan bool)
 	if err = chromedp.Run(
 		ctx,
+		runtime.Disable(),
+		fetch.Enable(),
 		chromedp.Navigate(play),
 		chromedp.WaitVisible(`div.bd`),
 		chromedp.ActionFunc(func(ctx context.Context) error {

@@ -100,7 +100,7 @@ func run() {
 		if err := utils.Retry(func() error {
 			url, err = loadPlay(play.URL, play.Play)
 			return err
-		}, 3, 3); err != nil {
+		}, 2, 3); err != nil {
 			log.Print(err)
 			c.String(500, "")
 			return

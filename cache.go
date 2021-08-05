@@ -26,7 +26,7 @@ func loadList(path string) (list []video, total int, err error) {
 	if err = utils.Retry(func() error {
 		list, total, err = getList(path)
 		return err
-	}, 3, 2); err != nil {
+	}, 2, 3); err != nil {
 		return
 	}
 
