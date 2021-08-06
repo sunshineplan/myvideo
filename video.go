@@ -234,7 +234,7 @@ func getPlay(play, script string) (url string, err error) {
 			if url == api+"/url.php" {
 				body, err := network.GetResponseBody(id).Do(ctx)
 				if err != nil {
-					log.Fatal(err)
+					return err
 				}
 				url = string(body)
 			}
