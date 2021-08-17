@@ -54,7 +54,7 @@ func (f *filter) string() string {
 	if f.Search == "" {
 		return fmt.Sprintf("%s-%s-%s-%d-%s.html", f.Genre, f.Area, f.Year, f.Page, f.Sort)
 	}
-	return fmt.Sprintf("/so/-%s-%d-%s.html", f.Search, f.Page, f.Sort)
+	return fmt.Sprintf("/so/%s-%s-%d-%s.html", f.Search, f.Search, f.Page, f.Sort)
 }
 
 func check(s string, a []string) (ok bool) {
