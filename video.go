@@ -129,10 +129,12 @@ func getPlayList(url string, ctx context.Context) (map[string][]play, error) {
 				c := chromedp.FromContext(ctx)
 				ctx := cdp.WithExecutor(ctx, c.Target)
 
-				if strings.Contains(ev.Request.URL, "media-loader") {
-					fetch.FailRequest(ev.RequestID, network.ErrorReasonBlockedByClient).Do(ctx)
-				} else {
+				if (ev.ResourceType == network.ResourceTypeDocument ||
+					ev.ResourceType == network.ResourceTypeScript) &&
+					strings.Contains(ev.Request.URL, "and") {
 					fetch.ContinueRequest(ev.RequestID).Do(ctx)
+				} else {
+					fetch.FailRequest(ev.RequestID, network.ErrorReasonBlockedByClient).Do(ctx)
 				}
 			}()
 		}
@@ -197,12 +199,32 @@ func getPlay(play, script string) (url string, err error) {
 	ctx, cancel = context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	var id network.RequestID
+	chromedp.ListenTarget(ctx, func(v interface{}) {
+		switch ev := v.(type) {
+		case *fetch.EventRequestPaused:
+			go func() {
+				c := chromedp.FromContext(ctx)
+				ctx := cdp.WithExecutor(ctx, c.Target)
 
+				if ((ev.ResourceType == network.ResourceTypeDocument ||
+					ev.ResourceType == network.ResourceTypeScript ||
+					ev.ResourceType == network.ResourceTypeXHR) &&
+					regexp.MustCompile("and|npm").MatchString(ev.Request.URL)) ||
+					ev.Request.URL == url {
+					fetch.ContinueRequest(ev.RequestID).Do(ctx)
+				} else {
+					fetch.FailRequest(ev.RequestID, network.ErrorReasonBlockedByClient).Do(ctx)
+				}
+			}()
+		}
+	})
+
+	var id network.RequestID
 	done := make(chan bool)
 	if err = chromedp.Run(
 		ctx,
 		runtime.Disable(),
+		fetch.Enable(),
 		chromedp.Navigate(play),
 		chromedp.WaitVisible(`div.bd`),
 		chromedp.ActionFunc(func(ctx context.Context) error {
@@ -228,16 +250,19 @@ func getPlay(play, script string) (url string, err error) {
 
 	<-done
 
+	if url != api+"/url.php" {
+		return
+	}
+
 	err = chromedp.Run(
 		ctx,
 		chromedp.ActionFunc(func(ctx context.Context) error {
-			if url == api+"/url.php" {
-				body, err := network.GetResponseBody(id).Do(ctx)
-				if err != nil {
-					return err
-				}
-				url = string(body)
+			body, err := network.GetResponseBody(id).Do(ctx)
+			if err != nil {
+				return err
 			}
+			url = string(body)
+
 			return nil
 		}),
 	)

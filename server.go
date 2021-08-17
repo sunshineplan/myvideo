@@ -72,6 +72,7 @@ func run() {
 		}
 		path += data.string()
 
+		log.Print(path)
 		list, total, err := loadList(path)
 		if err != nil {
 			log.Print(err)
