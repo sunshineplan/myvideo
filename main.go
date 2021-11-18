@@ -15,9 +15,15 @@ import (
 	"github.com/vharitonsky/iniflags"
 )
 
-var api, self string
-var logPath *string
+var self string
 var server = httpsvr.New()
+
+var (
+	api = flag.String("api", "", "API")
+	//logPath = flag.String("log", joinPath(dir(self), "access.log"), "Log Path")
+	logPath = flag.String("log", "", "Log Path")
+	exclude = flag.String("exclude", "", "Exclude Files")
+)
 
 var svc = service.Service{
 	Name:     "myvideo",
@@ -38,7 +44,7 @@ func init() {
 	}
 
 	gohttp.SetAgent(utils.UserAgent(
-		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36",
+		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36",
 	))
 }
 
@@ -52,14 +58,10 @@ usage: %s <command>
 }
 
 func main() {
-	flag.StringVar(&api, "api", "", "API")
 	flag.StringVar(&server.Unix, "unix", "", "UNIX-domain Socket")
 	flag.StringVar(&server.Host, "host", "0.0.0.0", "Server Host")
 	flag.StringVar(&server.Port, "port", "12345", "Server Port")
 	flag.StringVar(&svc.Options.UpdateURL, "update", "", "Update URL")
-	exclude := flag.String("exclude", "", "Exclude Files")
-	//logPath = flag.String("log", joinPath(dir(self), "access.log"), "Log Path")
-	logPath = flag.String("log", "", "Log Path")
 	iniflags.SetConfigFile(filepath.Join(filepath.Dir(self), "config.ini"))
 	iniflags.SetAllowMissingConfigFile(true)
 	iniflags.SetAllowUnknownFlags(true)

@@ -60,7 +60,7 @@ func getPage(s string) (int, error) {
 }
 
 func getList(path string) (list []video, total int, err error) {
-	resp := gohttp.Get(api+path, nil)
+	resp := gohttp.Get(*api+path, nil)
 	if resp.Error != nil {
 		err = resp.Error
 		return
@@ -80,7 +80,7 @@ func getList(path string) (list []video, total int, err error) {
 	for _, i := range li {
 		list = append(list, video{
 			Name:  i.Find("h2").FullText(),
-			URL:   api + i.Find("a").Attrs()["href"],
+			URL:   *api + i.Find("a").Attrs()["href"],
 			Image: i.Find("img").Attrs()["src"],
 		})
 	}
@@ -146,9 +146,9 @@ func getPlayList(url string, ctx context.Context) (map[string][]play, error) {
 		runtime.Disable(),
 		fetch.Enable(),
 		chromedp.Navigate(url),
-		chromedp.WaitVisible(`div.bd`),
+		chromedp.WaitVisible("div.bd"),
 		chromedp.InnerHTML("div#slider>header>dl", &dl),
-		chromedp.InnerHTML(`div.bd`, &db),
+		chromedp.InnerHTML("div.bd", &db),
 	); err != nil {
 		return nil, err
 	}
@@ -226,14 +226,19 @@ func getPlay(play, script string) (url string, err error) {
 		runtime.Disable(),
 		fetch.Enable(),
 		chromedp.Navigate(play),
-		chromedp.WaitVisible(`div.bd`),
+		chromedp.WaitVisible("div.bd"),
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			chromedp.ListenTarget(ctx, func(v interface{}) {
 				switch ev := v.(type) {
 				case *network.EventRequestWillBeSent:
 					if url == "" {
-						id = ev.RequestID
 						url = ev.Request.URL
+						if url != *api+"/url.php" {
+							close(done)
+							return
+						}
+						id = ev.RequestID
+
 					}
 				case *network.EventLoadingFinished:
 					if ev.RequestID == id {
@@ -248,9 +253,13 @@ func getPlay(play, script string) (url string, err error) {
 		return
 	}
 
-	<-done
+	select {
+	case <-ctx.Done():
+		return "", ctx.Err()
+	case <-done:
+	}
 
-	if url != api+"/url.php" {
+	if url != *api+"/url.php" {
 		return
 	}
 

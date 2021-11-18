@@ -9,6 +9,7 @@
   let current = "";
 
   const open = async (title: string, play: play) => {
+    if (play.ep == "暂无资源") return;
     loading++;
     const resp = await fetch("/play", {
       method: "post",
