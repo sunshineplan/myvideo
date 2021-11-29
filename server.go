@@ -35,6 +35,7 @@ func run() {
 	}
 
 	router := gin.Default()
+	router.TrustedPlatform = "X-Real-IP"
 	server.Handler = router
 
 	router.StaticFS("/build", http.Dir(filepath.Join(filepath.Dir(self), "public/build")))
