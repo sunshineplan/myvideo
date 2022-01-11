@@ -34,7 +34,6 @@ jobs:
           npm install
           npm run build
           go build -ldflags "-s -w"
-          GOOS=windows go build -ldflags "-s -w"
           echo "::set-output name=date::$(TZ=PRC date +'%Y-%m-%d')"
 
       - name: Delete Old Release
@@ -66,9 +65,7 @@ jobs:
             })
 
       - name: Pack
-        run: |
-          tar cvzf release.tar.gz public scripts myvideo config.ini.default
-          zip -9vr release-windows.zip public scripts myvideo.exe config.ini.default
+        run: tar cvzf release.tar.gz public scripts myvideo config.ini.default
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
