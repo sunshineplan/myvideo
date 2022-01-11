@@ -21,6 +21,7 @@
             height: 80px;
             justify-content: space-between;
             letter-spacing: 0.3px;
+            border-bottom: 5px solid #f2f2f2;
         }
 
         .navbar-brand {
@@ -51,8 +52,8 @@
 
 <body>
     <header class='navbar navbar-expand flex-column flex-md-row'>
-        <a class='navbar-brand text-primary m-0' href='/'>My Video</a>
-        <span id='title'></span>
+        <a class='navbar-brand text-primary m-0 mr-md-3' href='/'>My Video</a>
+        <a id='title' target='_blank' href='#' rel="noreferrer"></a>
     </header>
     <div class='video'>
         <video id='video' controls></video>
@@ -64,7 +65,9 @@
         const title = url.searchParams.get('title')
         if (title) {
             document.title = title
-            document.getElementById('title').innerText = title
+            const a = document.getElementById('title')
+            a.innerText = title
+            a.href = videoSrc
         }
         video.src = videoSrc
         video.onloadedmetadata = video.play

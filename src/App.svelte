@@ -20,8 +20,10 @@
   const channel = async (category?: keyof Category) => {
     if (loading) return;
     filter = {};
+    query = "";
     current = category;
     await getList();
+    window.history.pushState({}, "", "/");
   };
 
   const search = async () => {
@@ -30,6 +32,7 @@
     filter = {};
     filter.search = query;
     await getList();
+    window.history.pushState({}, "", `/?query=${query}`);
   };
 
   const getList = async (more?: boolean) => {
@@ -90,7 +93,12 @@
   };
 
   onMount(async () => {
-    await channel();
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("query");
+    if (q) {
+      query = q;
+      await search();
+    } else await channel();
   });
 </script>
 
