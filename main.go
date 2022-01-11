@@ -21,7 +21,8 @@ var self string
 var server = httpsvr.New()
 
 var (
-	api = flag.String("api", "", "API")
+	api     = flag.String("api", "", "API")
+	timeout = flag.Int("timeout", 30, "Timeout")
 	//logPath = flag.String("log", joinPath(dir(self), "access.log"), "Log Path")
 	logPath = flag.String("log", "", "Log Path")
 	exclude = flag.String("exclude", "", "Exclude Files")

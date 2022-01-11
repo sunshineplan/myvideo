@@ -38,8 +38,6 @@ type play struct {
 	M3U8 string `json:"m3u8"`
 }
 
-var timeout = 20 * time.Second
-
 func getPage(s string) (int, error) {
 	re1 := regexp.MustCompile(`index_(\d+)\.html`)
 	re2 := regexp.MustCompile(`/so/.*-.*-(\d*)-.*\.html`)
@@ -105,7 +103,7 @@ func getPlayList(url string) (map[string][]play, error) {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	ctx, cancel = context.WithTimeout(ctx, timeout)
+	ctx, cancel = context.WithTimeout(ctx, time.Duration(*timeout)*time.Second)
 	defer cancel()
 
 	chromedp.ListenTarget(ctx, func(v interface{}) {
@@ -165,7 +163,7 @@ func getPlay(play, script string) (url string, err error) {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	ctx, cancel = context.WithTimeout(ctx, timeout)
+	ctx, cancel = context.WithTimeout(ctx, time.Duration(*timeout)*time.Second)
 	defer cancel()
 
 	chromedp.ListenTarget(ctx, func(v interface{}) {
