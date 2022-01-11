@@ -73,7 +73,6 @@ func run() {
 		}
 		path += data.string()
 
-		//log.Print(path)
 		list, total, err := loadList(path)
 		if err != nil {
 			log.Print(err)
@@ -82,6 +81,23 @@ func run() {
 		}
 
 		c.JSON(200, gin.H{"total": total, "list": list})
+	})
+
+	router.POST("/playlist", func(c *gin.Context) {
+		url := c.PostForm("url")
+		if url == "" {
+			c.String(400, "")
+			return
+		}
+
+		playlist, err := loadPlayList(url)
+		if err != nil {
+			log.Print(err)
+			c.String(500, "")
+			return
+		}
+
+		c.JSON(200, playlist)
 	})
 
 	router.GET("/play", func(c *gin.Context) {

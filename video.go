@@ -3,11 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/anaskhan96/soup"
@@ -17,9 +16,9 @@ import (
 	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 	"github.com/sunshineplan/gohttp"
-	"github.com/sunshineplan/utils"
-	"github.com/sunshineplan/utils/workers"
 )
+
+var urlParse = url.Parse
 
 var category = map[string]string{
 	"dongman":   "/dongman/",
@@ -29,10 +28,9 @@ var category = map[string]string{
 }
 
 type video struct {
-	Name     string            `json:"name"`
-	URL      string            `json:"url"`
-	Image    string            `json:"image"`
-	PlayList map[string][]play `json:"playlist"`
+	Name  string `json:"name"`
+	URL   string `json:"url"`
+	Image string `json:"image"`
 }
 
 type play struct {
@@ -40,7 +38,6 @@ type play struct {
 	M3U8 string `json:"m3u8"`
 }
 
-var mu sync.Mutex
 var timeout = 20 * time.Second
 
 func getPage(s string) (int, error) {
@@ -101,22 +98,11 @@ func getList(path string) (list []video, total int, err error) {
 		total, err = getPage(href)
 	}
 
-	ctx, cancel := chromedp.NewContext(context.Background())
-	defer cancel()
-
-	workers.Slice(list, func(i int, _ interface{}) {
-		if err := utils.Retry(func() error {
-			return (&list[i]).getPlayList(ctx)
-		}, 2, 3); err != nil {
-			log.Print(err)
-		}
-	})
-
 	return
 }
 
-func getPlayList(url string, ctx context.Context) (map[string][]play, error) {
-	ctx, cancel := chromedp.NewContext(ctx)
+func getPlayList(url string) (map[string][]play, error) {
+	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
 	ctx, cancel = context.WithTimeout(ctx, timeout)
@@ -175,23 +161,6 @@ func getPlayList(url string, ctx context.Context) (map[string][]play, error) {
 	return list, nil
 }
 
-func (v *video) getPlayList(ctx context.Context) error {
-	mu.Lock()
-	url := v.URL
-	mu.Unlock()
-
-	playList, err := loadPlayList(url, ctx)
-	if err != nil {
-		return err
-	}
-
-	mu.Lock()
-	v.PlayList = playList
-	mu.Unlock()
-
-	return nil
-}
-
 func getPlay(play, script string) (url string, err error) {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
@@ -209,7 +178,7 @@ func getPlay(play, script string) (url string, err error) {
 				if ((ev.ResourceType == network.ResourceTypeDocument ||
 					ev.ResourceType == network.ResourceTypeScript ||
 					ev.ResourceType == network.ResourceTypeXHR) &&
-					regexp.MustCompile("and|npm").MatchString(ev.Request.URL)) ||
+					regexp.MustCompile("and|npm|m3u8").MatchString(ev.Request.URL)) ||
 					ev.Request.URL == url {
 					fetch.ContinueRequest(ev.RequestID).Do(ctx)
 				} else {
@@ -238,7 +207,6 @@ func getPlay(play, script string) (url string, err error) {
 							return
 						}
 						id = ev.RequestID
-
 					}
 				case *network.EventLoadingFinished:
 					if ev.RequestID == id {
@@ -275,6 +243,8 @@ func getPlay(play, script string) (url string, err error) {
 			return nil
 		}),
 	)
+
+	_, err = urlParse(url)
 
 	return
 }

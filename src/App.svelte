@@ -64,6 +64,25 @@
     alert("Failed to get list");
   };
 
+  const getPlayList = async (video: video) => {
+    loading++;
+    const resp = await fetch("/playlist", {
+      method: "post",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: "url=" + video.url,
+    });
+    loading--;
+    if (resp.ok) {
+      const json = await resp.json();
+      if (json) {
+        video.playlist = json;
+        list = list;
+      } else alert("No play list found");
+      return;
+    }
+    alert("Failed to get play list");
+  };
+
   const handleScroll = async () => {
     const div = document.querySelector(".content") as Element;
     if (div.scrollTop + div.clientHeight >= div.scrollHeight)
@@ -134,6 +153,13 @@
             bind:url={video.url}
             bind:playlist={video.playlist}
           />
+        {:else}
+          <button
+            class="btn btn-primary"
+            on:click={async () => await getPlayList(video)}
+          >
+            Load PlayList
+          </button>
         {/if}
       </div>
     </div>
