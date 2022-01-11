@@ -90,8 +90,12 @@ func run() {
 			return
 		}
 
-		playlist, err := loadPlayList(url)
-		if err != nil {
+		var playlist map[string][]play
+		var err error
+		if err := utils.Retry(func() error {
+			playlist, err = loadPlayList(url)
+			return err
+		}, 2, 3); err != nil {
 			log.Print(err)
 			c.String(500, "")
 			return
