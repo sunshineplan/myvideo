@@ -32,6 +32,3 @@ jobs:
           npm install
           npm run build
           go build -v ./...
-
-      - name: Test API
-        run: go test -api ${{ secrets.API }}
