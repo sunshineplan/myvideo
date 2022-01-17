@@ -3,7 +3,7 @@ module myvideo
 go 1.17
 
 require (
-	github.com/anaskhan96/soup v1.2.4
+	github.com/anaskhan96/soup v1.2.5
 	github.com/chromedp/cdproto v0.0.0-20220106001210-12edfdeb56f8
 	github.com/chromedp/chromedp v0.7.6
 	github.com/gin-gonic/gin v1.7.7
