@@ -4,8 +4,8 @@ go 1.17
 
 require (
 	github.com/anaskhan96/soup v1.2.5
-	github.com/chromedp/cdproto v0.0.0-20220106001210-12edfdeb56f8
-	github.com/chromedp/chromedp v0.7.6
+	github.com/chromedp/cdproto v0.0.0-20220131204822-e6abebe7b8cd
+	github.com/chromedp/chromedp v0.7.7
 	github.com/gin-gonic/gin v1.7.7
 	github.com/sunshineplan/gohttp v1.0.4
 	github.com/sunshineplan/service v1.0.3
@@ -33,7 +33,7 @@ require (
 	github.com/ugorji/go/codec v1.2.6 // indirect
 	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3 // indirect
 	golang.org/x/net v0.0.0-20220107192237-5cfca573fb4d // indirect
-	golang.org/x/sys v0.0.0-20220110181412-a018aaa089fe // indirect
+	golang.org/x/sys v0.0.0-20220128215802-99c3d69c2c27 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
