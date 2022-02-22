@@ -8,6 +8,7 @@ require (
 	github.com/chromedp/chromedp v0.7.8
 	github.com/gin-gonic/gin v1.7.7
 	github.com/sunshineplan/gohttp v1.0.4
+	github.com/sunshineplan/hlsdl v1.0.1
 	github.com/sunshineplan/service v1.0.3
 	github.com/sunshineplan/utils v0.0.33
 	github.com/vharitonsky/iniflags v0.0.0-20180513140207-a33cd0b5f3de
@@ -23,6 +24,7 @@ require (
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/gobwas/ws v1.1.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/grafov/m3u8 v0.11.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
@@ -31,8 +33,8 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/ugorji/go/codec v1.2.6 // indirect
-	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3 // indirect
-	golang.org/x/net v0.0.0-20220107192237-5cfca573fb4d // indirect
+	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
+	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
 	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect

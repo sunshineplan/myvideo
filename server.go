@@ -4,11 +4,18 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sunshineplan/utils"
+)
+
+var (
+	urlParse         = url.Parse
+	urlQueryEscape   = url.QueryEscape
+	urlQueryUnescape = url.QueryUnescape
 )
 
 func test() error {
@@ -118,17 +125,38 @@ func run() {
 		}
 
 		var url string
-		var err error
-		if err := utils.Retry(func() error {
+		if err := utils.Retry(func() (err error) {
 			url, err = loadPlay(play.URL, play.Play)
-			return err
+			return
 		}, 3, 3); err != nil {
 			log.Print(err)
 			c.String(500, "")
 			return
 		}
 
-		c.String(200, url)
+		if testM3U8(url) {
+			c.String(200, fmt.Sprint("/m3u8?ref=", urlQueryEscape(url)))
+		} else {
+			c.String(200, urlQueryEscape(url))
+		}
+	})
+
+	router.GET("/m3u8", func(c *gin.Context) {
+		url := c.Query("ref")
+		url, err := urlQueryUnescape(url)
+		if err != nil {
+			log.Print(err)
+			c.String(404, "")
+			return
+		}
+
+		res, err := loadM3U8(url)
+		if err == nil {
+			c.Data(200, "application/vnd.apple.mpegurl", []byte(res))
+		} else {
+			log.Print(err)
+			c.String(404, "")
+		}
 	})
 
 	router.NoRoute(func(c *gin.Context) {

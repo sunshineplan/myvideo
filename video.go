@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -17,8 +16,6 @@ import (
 	"github.com/chromedp/chromedp"
 	"github.com/sunshineplan/gohttp"
 )
-
-var urlParse = url.Parse
 
 var category = map[string]string{
 	"dongman":   "/dongman/",
@@ -245,4 +242,15 @@ func getPlay(play, script string) (url string, err error) {
 	_, err = urlParse(url)
 
 	return
+}
+
+func testM3U8(url string) bool {
+	resp := gohttp.Head(url, nil)
+	if resp.Error != nil {
+		return true
+	}
+	if resp.StatusCode != 200 {
+		return true
+	}
+	return resp.ContentLength < 3*1024*1024
 }

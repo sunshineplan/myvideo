@@ -3,6 +3,7 @@ package main
 import (
 	"time"
 
+	"github.com/sunshineplan/hlsdl"
 	"github.com/sunshineplan/utils"
 	"github.com/sunshineplan/utils/cache"
 )
@@ -66,4 +67,25 @@ func loadPlay(play, script string) (url string, err error) {
 	c.Set(play+script, url, time.Hour, nil)
 
 	return
+}
+
+func loadM3U8(url string) (string, error) {
+	value, ok := c.Get(url)
+	if ok {
+		return value.(string), nil
+	}
+
+	u, err := urlParse(url)
+	if err != nil {
+		return "", err
+	}
+
+	_, m3u8, err := hlsdl.FetchM3U8MediaPlaylist(u, false)
+	if err != nil {
+		return "", err
+	}
+
+	c.Set(url, m3u8.String(), time.Hour, nil)
+
+	return m3u8.String(), nil
 }
