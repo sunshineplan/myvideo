@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/sunshineplan/hlsdl"
-	"github.com/sunshineplan/utils"
 	"github.com/sunshineplan/utils/cache"
+	"github.com/sunshineplan/utils/retry"
 )
 
 type result struct {
@@ -23,7 +23,7 @@ func loadList(path string) (list []video, total int, err error) {
 		return
 	}
 
-	if err = utils.Retry(func() error {
+	if err = retry.Do(func() error {
 		list, total, err = getList(path)
 		return err
 	}, 2, 3); err != nil {

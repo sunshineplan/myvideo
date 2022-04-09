@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sunshineplan/utils"
+	"github.com/sunshineplan/utils/retry"
 )
 
 var (
@@ -99,7 +99,7 @@ func run() {
 
 		var playlist map[string][]play
 		var err error
-		if err := utils.Retry(func() error {
+		if err := retry.Do(func() error {
 			playlist, err = loadPlayList(url)
 			return err
 		}, 3, 3); err != nil {
@@ -125,7 +125,7 @@ func run() {
 		}
 
 		var url string
-		if err := utils.Retry(func() (err error) {
+		if err := retry.Do(func() (err error) {
 			url, err = loadPlay(play.URL, play.Play)
 			return
 		}, 3, 3); err != nil {
