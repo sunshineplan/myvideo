@@ -6,7 +6,7 @@ require (
 	github.com/anaskhan96/soup v1.2.5
 	github.com/chromedp/cdproto v0.0.0-20220515234810-83d799542a04
 	github.com/chromedp/chromedp v0.8.2
-	github.com/gin-gonic/gin v1.8.0
+	github.com/gin-gonic/gin v1.8.1
 	github.com/sunshineplan/gohttp v1.0.4
 	github.com/sunshineplan/hlsdl v1.0.2
 	github.com/sunshineplan/service v1.0.3
