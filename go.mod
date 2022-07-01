@@ -9,7 +9,7 @@ require (
 	github.com/gin-gonic/gin v1.8.1
 	github.com/sunshineplan/gohttp v1.0.4
 	github.com/sunshineplan/hlsdl v1.0.2
-	github.com/sunshineplan/service v1.0.3
+	github.com/sunshineplan/service v1.0.4
 	github.com/sunshineplan/utils v0.1.4
 	github.com/vharitonsky/iniflags v0.0.0-20180513140207-a33cd0b5f3de
 )
@@ -36,7 +36,7 @@ require (
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	golang.org/x/crypto v0.0.0-20220408190544-5352b0902921 // indirect
 	golang.org/x/net v0.0.0-20220407224826-aac1ed45d8e3 // indirect
-	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
+	golang.org/x/sys v0.0.0-20220627191245-f75cf1eec38b // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
