@@ -15,7 +15,7 @@ import (
 	"github.com/vharitonsky/iniflags"
 )
 
-var ua = utils.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36")
+var ua = utils.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36")
 
 var self string
 var server = httpsvr.New()
@@ -80,27 +80,10 @@ func main() {
 	case 0:
 		run()
 	case 1:
-		switch flag.Arg(0) {
-		case "run":
-			svc.Run(false)
-		case "debug":
-			svc.Run(true)
-		case "test":
-			err = svc.Test()
-		case "install":
-			err = svc.Install()
-		case "remove":
-			err = svc.Remove()
-		case "start":
-			err = svc.Start()
-		case "stop":
-			err = svc.Stop()
-		case "restart":
-			err = svc.Restart()
-		case "update":
-			err = svc.Update()
-		default:
-			usage(fmt.Sprintf("Unknown argument: %s", flag.Arg(0)))
+		cmd := flag.Arg(0)
+		var ok bool
+		if ok, err = svc.Command(cmd); !ok {
+			log.Fatalln("Unknown argument:", cmd)
 		}
 	default:
 		usage(fmt.Sprintf("Unknown arguments: %s", strings.Join(flag.Args(), " ")))
