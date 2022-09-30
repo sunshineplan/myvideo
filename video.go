@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -9,11 +8,10 @@ import (
 	"time"
 
 	"github.com/anaskhan96/soup"
-	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/fetch"
 	"github.com/chromedp/cdproto/network"
-	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
+	"github.com/sunshineplan/chrome"
 	"github.com/sunshineplan/gohttp"
 )
 
@@ -97,35 +95,23 @@ func getList(path string) (list []video, total int, err error) {
 }
 
 func getPlayList(url string) (map[string][]play, error) {
-	ctx, cancel := chromedp.NewContext(context.Background())
-	defer cancel()
+	c := chrome.Headless(false)
+	if _, _, err := c.WithTimeout(time.Duration(*timeout) * time.Second); err != nil {
+		return nil, err
+	}
+	defer c.Close()
 
-	ctx, cancel = context.WithTimeout(ctx, time.Duration(*timeout)*time.Second)
-	defer cancel()
-
-	chromedp.ListenTarget(ctx, func(v interface{}) {
-		switch ev := v.(type) {
-		case *fetch.EventRequestPaused:
-			go func() {
-				c := chromedp.FromContext(ctx)
-				ctx := cdp.WithExecutor(ctx, c.Target)
-
-				if (ev.ResourceType == network.ResourceTypeDocument ||
-					ev.ResourceType == network.ResourceTypeScript) &&
-					strings.Contains(ev.Request.URL, "and") {
-					fetch.ContinueRequest(ev.RequestID).Do(ctx)
-				} else {
-					fetch.FailRequest(ev.RequestID, network.ErrorReasonBlockedByClient).Do(ctx)
-				}
-			}()
-		}
-	})
+	if err := c.EnableFetch(func(ev *fetch.EventRequestPaused) bool {
+		return (ev.ResourceType == network.ResourceTypeDocument ||
+			ev.ResourceType == network.ResourceTypeScript) &&
+			strings.Contains(ev.Request.URL, "and")
+	}); err != nil {
+		return nil, err
+	}
 
 	var dl, db string
 	if err := chromedp.Run(
-		ctx,
-		runtime.Disable(),
-		fetch.Enable(),
+		c,
 		chromedp.Navigate(url),
 		chromedp.WaitVisible("div.bd"),
 		chromedp.InnerHTML("div#slider>header>dl", &dl),
@@ -157,91 +143,41 @@ func getPlayList(url string) (map[string][]play, error) {
 }
 
 func getPlay(play, script string) (url string, err error) {
-	ctx, cancel := chromedp.NewContext(context.Background())
-	defer cancel()
+	c := chrome.Headless(false)
+	if _, _, err = c.WithTimeout(time.Duration(*timeout) * time.Second); err != nil {
+		return
+	}
+	defer c.Close()
 
-	ctx, cancel = context.WithTimeout(ctx, time.Duration(*timeout)*time.Second)
-	defer cancel()
+	if err = c.EnableFetch(func(ev *fetch.EventRequestPaused) bool {
+		return ((ev.ResourceType == network.ResourceTypeDocument ||
+			ev.ResourceType == network.ResourceTypeScript ||
+			ev.ResourceType == network.ResourceTypeXHR) &&
+			regexp.MustCompile("and|npm|m3u8").MatchString(ev.Request.URL))
+	}); err != nil {
+		return
+	}
 
-	chromedp.ListenTarget(ctx, func(v interface{}) {
-		switch ev := v.(type) {
-		case *fetch.EventRequestPaused:
-			go func() {
-				c := chromedp.FromContext(ctx)
-				ctx := cdp.WithExecutor(ctx, c.Target)
+	if err = chromedp.Run(c, chromedp.Navigate(play), chromedp.WaitVisible("div.bd")); err != nil {
+		return
+	}
 
-				if ((ev.ResourceType == network.ResourceTypeDocument ||
-					ev.ResourceType == network.ResourceTypeScript ||
-					ev.ResourceType == network.ResourceTypeXHR) &&
-					regexp.MustCompile("and|npm|m3u8").MatchString(ev.Request.URL)) ||
-					ev.Request.URL == url {
-					fetch.ContinueRequest(ev.RequestID).Do(ctx)
-				} else {
-					fetch.FailRequest(ev.RequestID, network.ErrorReasonBlockedByClient).Do(ctx)
-				}
-			}()
-		}
-	})
-
-	var id network.RequestID
-	done := make(chan bool)
-	if err = chromedp.Run(
-		ctx,
-		runtime.Disable(),
-		fetch.Enable(),
-		chromedp.Navigate(play),
-		chromedp.WaitVisible("div.bd"),
-		chromedp.ActionFunc(func(ctx context.Context) error {
-			chromedp.ListenTarget(ctx, func(v interface{}) {
-				switch ev := v.(type) {
-				case *network.EventRequestWillBeSent:
-					if url == "" {
-						url = ev.Request.URL
-						if url != *api+"/url.php" {
-							close(done)
-							return
-						}
-						id = ev.RequestID
-					}
-				case *network.EventLoadingFinished:
-					if ev.RequestID == id {
-						close(done)
-					}
-				}
-			})
-			return nil
-		}),
-		chromedp.Evaluate(script, nil),
-	); err != nil {
+	_, done, err := c.ListenScriptEvent(script, nil, "", "", true)
+	if err != nil {
 		return
 	}
 
 	select {
-	case <-ctx.Done():
-		return "", ctx.Err()
-	case <-done:
-	}
-
-	if url != *api+"/url.php" {
+	case <-c.Done():
+		return "", c.Err()
+	case e := <-done:
+		if url = e.Request.Request.URL; url != *api+"/url.php" {
+			return
+		}
+		url = string(e.Bytes)
+		_, err = urlParse(url)
 		return
 	}
-
-	err = chromedp.Run(
-		ctx,
-		chromedp.ActionFunc(func(ctx context.Context) error {
-			body, err := network.GetResponseBody(id).Do(ctx)
-			if err != nil {
-				return err
-			}
-			url = string(body)
-
-			return nil
-		}),
-	)
-
-	_, err = urlParse(url)
-
-	return
 }
 
 func testM3U8(url string) bool {
