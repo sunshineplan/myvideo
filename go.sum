@@ -77,8 +77,8 @@ github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/
 github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.8.0 h1:pSgiaMZlXftHpm5L7V1+rVB+AZJydKsMxsQBIJw4PKk=
 github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
-github.com/sunshineplan/chrome v1.0.19 h1:C308TdTp3skCn1mWLqsUhGiuEKzDMoGBG3BaM1VONLk=
-github.com/sunshineplan/chrome v1.0.19/go.mod h1:IVm3C9RG+Vrm8Sri9wfUelTQDS9RjQ9mw0HU7+wId1Y=
+github.com/sunshineplan/chrome v1.0.20 h1:cgQ5A6lu4A3Ia7xbG0khzGGkKhJhuhCvZ6hDgEtq1DU=
+github.com/sunshineplan/chrome v1.0.20/go.mod h1:me3ldMpwAvPON1XXKNKrB1KpiQfo3HKmcYoxJLUmivw=
 github.com/sunshineplan/gohttp v1.0.5 h1:wScgs9Bl0a8rafLXPeNnNsMTG3qn5LNWkoWvkKvaP4s=
 github.com/sunshineplan/gohttp v1.0.5/go.mod h1:zSxRKlkbXY/5yRDQsrV3dXGCQBZNp1t4QqC5LHkg3bg=
 github.com/sunshineplan/hlsdl v1.0.4 h1:Y1r23cZmaywr1onQ1Xiyy0zkr26gzuucdWXRICz1ZwA=
