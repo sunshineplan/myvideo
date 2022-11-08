@@ -33,6 +33,7 @@
 <ul class="nav nav-tabs">
   {#each Object.keys(playlist) as src}
     <li class="nav-item">
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
       <span
         class="nav-link"
         class:active={current == src}
@@ -47,6 +48,7 @@
   {#if playlist[current]}
     {#each playlist[current] as play (play.ep)}
       <li>
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
         <span class="play" on:click={() => open(name, play)}>
           {play.ep}
         </span>

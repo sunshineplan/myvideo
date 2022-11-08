@@ -108,6 +108,7 @@
   <a class="navbar-brand text-primary m-0" href="/">My Video</a>
   <ul class="navbar-nav">
     {#each keys as c}
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
       <li
         class="nav-link"
         class:active={current == c}
@@ -149,6 +150,7 @@
 <div class="content" style="opacity: {loading ? 0.5 : 1}">
   {#each list as video (video.url)}
     <div style="display:flex">
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
       <div class="video" on:click={() => window.open(video.url)}>
         <img src={video.image} alt={video.name} width="150px" height="208px" />
         {video.name}
