@@ -45,12 +45,12 @@ func run() {
 	router.TrustedPlatform = "X-Real-IP"
 	server.Handler = router
 
-	router.StaticFS("/build", http.Dir(filepath.Join(filepath.Dir(self), "public/build")))
-	router.StaticFS("/res", http.Dir(filepath.Join(filepath.Dir(self), "public/res")))
-	router.StaticFile("favicon.ico", filepath.Join(filepath.Dir(self), "public/favicon.ico"))
+	router.StaticFS("/assets", http.Dir(filepath.Join(filepath.Dir(self), "dist/assets")))
+	router.StaticFS("/res", http.Dir(filepath.Join(filepath.Dir(self), "dist/res")))
+	router.StaticFile("favicon.ico", filepath.Join(filepath.Dir(self), "dist/favicon.ico"))
 	router.LoadHTMLFiles(
-		filepath.Join(filepath.Dir(self), "public/index.html"),
-		filepath.Join(filepath.Dir(self), "public/player.html"),
+		filepath.Join(filepath.Dir(self), "dist/index.html"),
+		filepath.Join(filepath.Dir(self), "dist/player.html"),
 	)
 
 	router.GET("/", func(c *gin.Context) {

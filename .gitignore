@@ -17,5 +17,5 @@
 *.ini
 *.log
 
+dist
 node_modules
-/public/build/

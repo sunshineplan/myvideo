@@ -65,7 +65,7 @@ jobs:
             })
 
       - name: Pack
-        run: tar cvzf release.tar.gz public scripts myvideo config.ini.default
+        run: tar cvzf release.tar.gz dist scripts myvideo config.ini.default
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
