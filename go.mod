@@ -4,8 +4,8 @@ go 1.19
 
 require (
 	github.com/anaskhan96/soup v1.2.5
-	github.com/chromedp/cdproto v0.0.0-20221126224343-3a0787b8dd28
-	github.com/chromedp/chromedp v0.8.6
+	github.com/chromedp/cdproto v0.0.0-20230109101555-6b041c6303cc
+	github.com/chromedp/chromedp v0.8.7
 	github.com/gin-gonic/gin v1.8.2
 	github.com/sunshineplan/chrome v1.1.0
 	github.com/sunshineplan/gohttp v1.0.5
