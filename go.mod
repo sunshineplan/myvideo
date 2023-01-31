@@ -4,10 +4,10 @@ go 1.19
 
 require (
 	github.com/anaskhan96/soup v1.2.5
-	github.com/chromedp/cdproto v0.0.0-20230109101555-6b041c6303cc
+	github.com/chromedp/cdproto v0.0.0-20230130203205-31e3d8a04b57
 	github.com/chromedp/chromedp v0.8.7
 	github.com/gin-gonic/gin v1.8.2
-	github.com/sunshineplan/chrome v1.1.0
+	github.com/sunshineplan/chrome v1.1.1
 	github.com/sunshineplan/gohttp v1.0.5
 	github.com/sunshineplan/hlsdl v1.0.4
 	github.com/sunshineplan/service v1.0.6
@@ -37,7 +37,7 @@ require (
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	golang.org/x/crypto v0.3.0 // indirect
 	golang.org/x/net v0.4.0 // indirect
-	golang.org/x/sys v0.3.0 // indirect
+	golang.org/x/sys v0.4.0 // indirect
 	golang.org/x/text v0.5.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
